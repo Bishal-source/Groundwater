@@ -18,7 +18,11 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-from config import PROJECT_ID, STATE_NAME
+from config import (
+    PROJECT_ID,
+    STATE_NAME,
+    EXPORT_FOLDER
+)
 
 
 # ==========================================================
@@ -213,3 +217,90 @@ def get_area(boundary):
         .divide(1e6)
         .getInfo()
     )
+
+# ==========================================================
+# Export Image to Google Drive
+# ==========================================================
+
+def export_image_to_drive(
+    image,
+    description,
+    region,
+    scale=10,
+    folder=EXPORT_FOLDER
+):
+    """
+    Create an Earth Engine export task to Google Drive.
+
+    Parameters
+    ----------
+    image : ee.Image
+        Image to export.
+
+    description : str
+        Export task name.
+
+    region : ee.Geometry
+        Export region.
+
+    scale : int
+        Export resolution.
+
+    folder : str
+        Google Drive folder.
+    """
+
+    task = ee.batch.Export.image.toDrive(
+        image=image,
+        description=description,
+        folder=folder,
+        fileNamePrefix=description,
+        region=region,
+        scale=scale,
+        maxPixels=1e13
+    )
+
+    task.start()
+
+    return task
+
+# ==========================================================
+# Print Export Status
+# ==========================================================
+
+def print_export_status(task, description):
+
+    print("\nExport Information")
+    print("-" * 35)
+
+    print(f"Task Name   : {description}")
+    print(f"Task ID     : {task.id}")
+    print(f"Status      : Submitted")
+    print(f"Destination : Google Drive")
+    print(f"Folder      : {EXPORT_FOLDER}")
+
+    print("\n✓ Export task created successfully.")
+
+# ==========================================================
+# Count Images
+# ==========================================================
+
+def get_image_count(
+        dataset,
+        boundary,
+        start_date,
+        end_date):
+
+    collection = (
+        ee.ImageCollection(dataset)
+        .filterBounds(boundary)
+        .filterDate(start_date, end_date)
+        .filter(
+            ee.Filter.lt(
+                "CLOUDY_PIXEL_PERCENTAGE",
+                20
+            )
+        )
+    )
+
+    return collection.size().getInfo()
