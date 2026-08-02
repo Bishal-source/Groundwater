@@ -167,15 +167,17 @@ def image_statistics(
     """
 
     stats = image.reduceRegion(
-        reducer=ee.Reducer.minMax().combine(
-            reducer2=ee.Reducer.mean(),
-            sharedInputs=True
-        ),
-        geometry=geometry,
-        scale=scale,
-        maxPixels=1e13
+    reducer=ee.Reducer.minMax().combine(
+        reducer2=ee.Reducer.mean(),
+        sharedInputs=True
+    ),
+    geometry=geometry,
+    scale=scale,
+    bestEffort=True,
+    maxPixels=1e13,
+    tileScale=4
     )
-
+    
     return stats.getInfo()
 
 

@@ -1,14 +1,19 @@
 """
-Generate NDVI (Normalized Difference Vegetation Index)
+06_ndvi.py
 
 Groundwater Potential Mapping Project
+
+Purpose:
+Generate NDVI from Sentinel-2 imagery,
+calculate statistics,
+and export the NDVI raster to Google Drive.
 """
 
 import os
 import sys
 
 # ==========================================================
-# Add Project Root
+# Add Project Root to Python Path
 # ==========================================================
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -16,11 +21,20 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
+# ==========================================================
+# Import Configuration
+# ==========================================================
+
 from config import (
+    STATE_NAME,
     SATELLITE_DATASET,
     START_DATE,
     END_DATE
 )
+
+# ==========================================================
+# Import Utility Functions
+# ==========================================================
 
 from utils import (
     initialize_ee,
@@ -29,79 +43,100 @@ from utils import (
     load_satellite_image,
     calculate_ndvi,
     image_statistics,
-    print_statistics
+    print_statistics,
+    export_image_to_drive,
+    print_export_status,
+    get_image_count
 )
 
 
 def main():
 
-    # ======================================================
+    # ------------------------------------------------------
     # Initialize Earth Engine
-    # ======================================================
+    # ------------------------------------------------------
 
     initialize_ee()
 
-    print_header("STEP 05 : NDVI GENERATION")
+    print_header("STEP 06 : NDVI GENERATION")
 
-    # ======================================================
+    # ------------------------------------------------------
     # Load Study Area
-    # ======================================================
+    # ------------------------------------------------------
 
-    haryana = get_state_boundary()
+    boundary = get_state_boundary()
 
-    print("Study Area :", "Haryana")
-    print()
+    # ------------------------------------------------------
+    # Number of Images
+    # ------------------------------------------------------
 
-    # ======================================================
-    # Number of Sentinel-2 Images
-    # ======================================================
-
-    image_collection = (
-        __import__("ee")
-        .ImageCollection(SATELLITE_DATASET)
-        .filterBounds(haryana)
-        .filterDate(START_DATE, END_DATE)
-        .filter(__import__("ee").Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 20))
+    image_count = get_image_count(
+        SATELLITE_DATASET,
+        boundary,
+        START_DATE,
+        END_DATE
     )
 
-    print("Satellite Images Found :", image_collection.size().getInfo())
-    print()
-
-    # ======================================================
-    # Load Satellite Image
-    # ======================================================
+    # ------------------------------------------------------
+    # Load Sentinel-2 Composite
+    # ------------------------------------------------------
 
     image = load_satellite_image(
-        haryana,
+        boundary,
         SATELLITE_DATASET,
         START_DATE,
         END_DATE
     )
 
-    # ======================================================
+    # ------------------------------------------------------
     # Generate NDVI
-    # ======================================================
+    # ------------------------------------------------------
 
     ndvi = calculate_ndvi(image)
 
-    # ======================================================
-    # Statistics
-    # ======================================================
+    # ------------------------------------------------------
+    # Calculate Statistics
+    # ------------------------------------------------------
 
     stats = image_statistics(
         ndvi,
-        haryana.geometry(),
-        scale=10
+        boundary.geometry(),
+        scale=100
     )
 
-    print("NDVI Statistics")
+    # ------------------------------------------------------
+    # Display Information
+    # ------------------------------------------------------
+
+    print(f"Study Area     : {STATE_NAME}")
+    print("Satellite      : Sentinel-2 SR Harmonized")
+    print(f"Date Range     : {START_DATE} to {END_DATE}")
+    print(f"Images Used    : {image_count}")
+
+    print("\nNDVI Statistics")
 
     print_statistics(
         stats,
         "NDVI"
     )
 
-    print("✓ NDVI generated successfully.")
+    # ------------------------------------------------------
+    # Export NDVI
+    # ------------------------------------------------------
+
+    task = export_image_to_drive(
+        image=ndvi,
+        description="NDVI_Haryana",
+        region=boundary.geometry(),
+        scale=10
+    )
+
+    print_export_status(
+        task,
+        "NDVI_Haryana"
+    )
+
+    print("\n✓ NDVI generation completed successfully.")
 
 
 if __name__ == "__main__":
