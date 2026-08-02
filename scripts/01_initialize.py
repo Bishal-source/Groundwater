@@ -1,26 +1,60 @@
-import ee
+"""
+01_initialize.py
+
+Groundwater Potential Mapping Project
+
+Purpose:
+Initialize Google Earth Engine and verify the project configuration.
+"""
+
 import os
 import sys
 
-# Add the project root to Python's search path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# ==========================================================
+# Add Project Root to Python Path
+# ==========================================================
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
+
+# ==========================================================
+# Import Configuration
+# ==========================================================
 
 from config import PROJECT_ID
 
+# ==========================================================
+# Import Utility Functions
+# ==========================================================
 
-def initialize_earth_engine():
-    try:
-        ee.Initialize(project=PROJECT_ID)
+from utils import (
+    initialize_ee,
+    print_header
+)
 
-        print("=" * 50)
-        print("Google Earth Engine Initialized Successfully")
-        print("=" * 50)
-        print(f"Project ID : {PROJECT_ID}")
 
-    except Exception as e:
-        print("Initialization Failed!")
-        print(e)
+def main():
+
+    # ------------------------------------------------------
+    # Initialize Earth Engine
+    # ------------------------------------------------------
+
+    initialize_ee()
+
+    # ------------------------------------------------------
+    # Display Header
+    # ------------------------------------------------------
+
+    print_header("STEP 01 : INITIALIZE GOOGLE EARTH ENGINE")
+
+    print("Google Earth Engine initialized successfully.\n")
+
+    print(f"Project ID : {PROJECT_ID}")
+
+    print("\n✓ Initialization completed.")
 
 
 if __name__ == "__main__":
-    initialize_earth_engine()
+    main()

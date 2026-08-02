@@ -1,60 +1,101 @@
 """
-Generate Slope Map
+04_slope.py
+
 Groundwater Potential Mapping Project
+
+Purpose:
+Generate the slope layer from the DEM and calculate
+basic slope statistics.
 """
 
 import os
 import sys
-import ee
 
-# ----------------------------------------
-# Add project root to Python path
-# ----------------------------------------
+# ==========================================================
+# Add Project Root to Python Path
+# ==========================================================
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 if PROJECT_ROOT not in sys.path:
     sys.path.append(PROJECT_ROOT)
 
-from config import DEM_DATASET
+# ==========================================================
+# Import Configuration
+# ==========================================================
+
+from config import (
+    STATE_NAME,
+    DEM_DATASET
+)
+
+# ==========================================================
+# Import Utility Functions
+# ==========================================================
+
 from utils import (
     initialize_ee,
     print_header,
     get_state_boundary,
     load_dem,
+    calculate_slope,
     image_statistics
 )
 
 
 def main():
 
+    # ------------------------------------------------------
     # Initialize Earth Engine
+    # ------------------------------------------------------
+
     initialize_ee()
+
+    # ------------------------------------------------------
+    # Header
+    # ------------------------------------------------------
 
     print_header("STEP 04 : SLOPE MAP")
 
-    # Load Haryana Boundary
-    haryana = get_state_boundary()
+    # ------------------------------------------------------
+    # Load Study Area
+    # ------------------------------------------------------
 
+    boundary = get_state_boundary()
+
+    # ------------------------------------------------------
     # Load DEM
+    # ------------------------------------------------------
+
     dem = load_dem(
-        haryana,
+        boundary,
         DEM_DATASET
     )
 
+    # ------------------------------------------------------
     # Generate Slope
-    slope = ee.Terrain.slope(dem)
+    # ------------------------------------------------------
 
+    slope = calculate_slope(dem)
+
+    # ------------------------------------------------------
     # Calculate Statistics
+    # ------------------------------------------------------
+
     stats = image_statistics(
         slope,
-        haryana.geometry()
+        boundary.geometry(),
+        scale=30
     )
 
-    print("Study Area : Haryana\n")
+    # ------------------------------------------------------
+    # Display Results
+    # ------------------------------------------------------
+
+    print(f"Study Area : {STATE_NAME}\n")
 
     print("Slope Statistics")
-    print("-" * 30)
+    print("-" * 35)
 
     print(f"Minimum Slope : {stats['slope_min']:.2f}°")
     print(f"Maximum Slope : {stats['slope_max']:.2f}°")

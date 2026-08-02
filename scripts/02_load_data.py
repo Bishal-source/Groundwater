@@ -1,51 +1,78 @@
+"""
+02_load_data.py
+
+Groundwater Potential Mapping Project
+
+Purpose:
+Load the study area boundary and calculate basic information.
+"""
+
 import os
 import sys
-import ee
 
-# Add project root to Python path
+# ==========================================================
+# Add Project Root to Python Path
+# ==========================================================
+
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(PROJECT_ROOT)
 
-from config import PROJECT_ID, STATE_NAME
+if PROJECT_ROOT not in sys.path:
+    sys.path.append(PROJECT_ROOT)
 
-# -----------------------------------
-# Initialize Earth Engine
-# -----------------------------------
+# ==========================================================
+# Import Configuration
+# ==========================================================
 
-ee.Initialize(project=PROJECT_ID)
+from config import STATE_NAME
 
-print("=" * 60)
-print("Google Earth Engine Connected")
-print("=" * 60)
+# ==========================================================
+# Import Utility Functions
+# ==========================================================
 
-# -----------------------------------
-# Load India State Boundaries
-# -----------------------------------
-
-states = ee.FeatureCollection("FAO/GAUL/2015/level1")
-
-# Select Haryana
-haryana = states.filter(
-    ee.Filter.eq("ADM1_NAME", STATE_NAME)
+from utils import (
+    initialize_ee,
+    print_header,
+    get_state_boundary,
+    get_area
 )
 
-# -----------------------------------
-# Basic Information
-# -----------------------------------
 
-print(f"Study Area : {STATE_NAME}")
+def main():
 
-count = haryana.size().getInfo()
-print(f"Number of Features : {count}")
+    # ------------------------------------------------------
+    # Initialize Earth Engine
+    # ------------------------------------------------------
 
-if count == 0:
-    print("ERROR: Haryana boundary not found!")
-else:
-    print("Boundary loaded successfully.")
+    initialize_ee()
 
-# Area in square kilometers
-area = haryana.geometry().area().divide(1e6).getInfo()
+    # ------------------------------------------------------
+    # Header
+    # ------------------------------------------------------
 
-print(f"Area : {area:,.2f} sq.km")
+    print_header("STEP 02 : LOAD STUDY AREA")
 
-print("=" * 60)
+    # ------------------------------------------------------
+    # Load Boundary
+    # ------------------------------------------------------
+
+    boundary = get_state_boundary()
+
+    # ------------------------------------------------------
+    # Calculate Area
+    # ------------------------------------------------------
+
+    area = get_area(boundary)
+
+    # ------------------------------------------------------
+    # Display Information
+    # ------------------------------------------------------
+
+    print(f"Study Area : {STATE_NAME}")
+    print(f"Number of Features : {boundary.size().getInfo()}")
+    print(f"Area : {area:.2f} sq.km")
+
+    print("\n✓ Study area loaded successfully.")
+
+
+if __name__ == "__main__":
+    main()

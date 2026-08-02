@@ -14,7 +14,7 @@ STATE_NAME = "Haryana"
 # Study Period
 # ==========================================
 
-START_DATE = "2024-01-01"
+START_DATE = "2024-10-01"
 END_DATE = "2024-12-31"
 
 # ==========================================
@@ -22,8 +22,7 @@ END_DATE = "2024-12-31"
 # ==========================================
 
 DEM_DATASET = "USGS/SRTMGL1_003"
-LANDSAT_DATASET = "LANDSAT/LC08/C02/T1_L2"
-SENTINEL_DATASET = "COPERNICUS/S2_SR_HARMONIZED"
+SATELLITE_DATASET = "COPERNICUS/S2_SR_HARMONIZED"
 
 # ==========================================
 # Export Settings
